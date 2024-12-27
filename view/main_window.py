@@ -77,27 +77,28 @@ class MainWindow(QMainWindow):
                 border: 1px solid #555;
             }
 
-            QSlider::groove:vertical {
+            QSlider::groove:horizontal {
+                height: 15px;
                 background: #444;
-                width: 10px;
-                border-radius: 5px; 
                 margin: 0px;
+                border-radius: 4px;
             }
-            QSlider::handle:vertical {
-                background: rgb(4,124,212); /* Blue color */
-                width: 16px; /* Increased handle size */
-                height: 16px; /* Keep handle size proportional */
-                border-radius: 10px; /* Ensure circular handle */
-                margin: -10px; /* Center the handle in the groove */
-                border: 2px solid #2a2a2a; /* Add border to enhance visibility */
+            QSlider::handle:horizontal {
+                background: rgb(4,124,212);
+                width: 16px;
+                height: 12px;
+                border-radius: 6px;
+                margin: -5px 0;
+                border: 1px solid #2a2a2a;
             }
-            QSlider::handle:vertical:hover {
-                background: #007BFF; /* Slightly lighter blue when hovered */
+            QSlider::handle:horizontal:hover {
+                background: #777;
             }
-            QSlider::handle:vertical:disabled {
+            QSlider::handle:horizontal:disabled {
                 background: #555;
-                border: 2px solid #444;
+                border: 1px solid #444;
             }
+
             QProgressBar {
                 text-align: center;
                 border: 1px solid #2a2a2a;

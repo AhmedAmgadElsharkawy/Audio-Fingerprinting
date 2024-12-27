@@ -14,9 +14,13 @@ class OutputViewer(AudioViewer):
         self.controls_widget_layout.addWidget(self.match_button)
         self.match_button.setFixedWidth(100)
         self.match_button.setCursor(Qt.CursorShape.PointingHandCursor)
-                
+        
+        self.controls_widget_layout.addStretch()
+
         self.signals_ratio_slider = CustomSlider()
+        self.signals_ratio_slider.setFixedWidth(500)
         self.controls_widget_layout.addWidget(self.signals_ratio_slider)
+
 
 
 
