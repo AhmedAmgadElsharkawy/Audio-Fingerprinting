@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QPushButton,QFileDialog
+from PyQt5.QtWidgets import QPushButton
 from PyQt5.QtGui import QIcon
 import pyqtgraph as pg
 from PyQt5.QtCore import QSize,Qt
@@ -6,6 +6,7 @@ from PyQt5.QtCore import QSize,Qt
 class AudioViewer(pg.PlotWidget):
     def __init__(self):
         super().__init__()
+        self.playing = False
         self.setBackground("w")
         self.showGrid(x=True, y=True)
         self.getAxis('bottom').setPen(pg.mkPen('k'))  
@@ -17,10 +18,12 @@ class AudioViewer(pg.PlotWidget):
         self.pause_icon = QIcon("assets/icons/pause-button.png")
 
         self.button = QPushButton(parent = self)
-        self.set_play_icon()
+        self.button.setIcon(self.play_icon)
         self.button.setGeometry(50,30,40,40)
         self.button.setIconSize(QSize(40, 40))  # Set icon size to 32x32
         self.button.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.button.clicked.connect(self.toggle_icon)
+        
         self.button.setStyleSheet("""
             QPushButton {
                 border: none;
@@ -30,12 +33,14 @@ class AudioViewer(pg.PlotWidget):
                 background-color: none; /* Optional: hover effect */
             }
         """)
+        
 
-    def set_pause_icon(self):
-        self.button.setIcon(self.pause_icon)
-
-    def set_play_icon(self):
-        self.button.setIcon(self.play_icon)
+    def toggle_icon(self):
+        self.playing = not self.playing
+        if self.playing:
+            self.button.setIcon(self.pause_icon)
+        else:
+            self.button.setIcon(self.play_icon)
 
 
 

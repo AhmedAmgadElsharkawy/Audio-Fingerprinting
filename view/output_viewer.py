@@ -1,7 +1,6 @@
 from PyQt5.QtWidgets import QWidget,QHBoxLayout
 from view.audio_viewer import AudioViewer
 
-
 class OutputViewer(QWidget):
     def __init__(self,audio_signal):
         super().__init__()
@@ -14,7 +13,6 @@ class OutputViewer(QWidget):
         self.main_widget_layout.setContentsMargins(0,0,0,0)
         self.central_layout.addWidget(self.main_widget)
         
-
         self.audio_viewer = AudioViewer()
         self.main_widget_layout.addWidget(self.audio_viewer)
 
