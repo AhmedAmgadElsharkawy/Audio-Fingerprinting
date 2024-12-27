@@ -4,6 +4,8 @@ from PyQt5.QtCore import Qt
 class CustomSlider(QWidget):
     def __init__(self):
         super().__init__()
+        self.signal1_ratio = 50
+        self.signal2_ratio = 50
         self.central_layout = QHBoxLayout(self)
         self.central_layout.setContentsMargins(0,0,0,0)
 
@@ -51,5 +53,15 @@ class CustomSlider(QWidget):
         self.main_widget_layout.addWidget(self.signal1_widget)
         self.main_widget_layout.addWidget(self.slider_container)
         self.main_widget_layout.addWidget(self.signal2_widget)
+
+        self.slider.valueChanged.connect(self.slider_change)
+
+    def slider_change(self):
+        slider_value = self.slider.value()
+        self.signal1_ratio = 50 - slider_value
+        self.signal2_ratio = 50 + slider_value
+        self.signal1_ratio_label.setText(f"{self.signal1_ratio}%")
+        self.signal2_ratio_label.setText(f"{self.signal2_ratio}%")
+        
 
         
