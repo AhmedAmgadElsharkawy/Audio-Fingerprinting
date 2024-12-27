@@ -13,7 +13,7 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle('FT-Mixer')
-        self.setGeometry(200, 100, 1200, 600)
+        self.setGeometry(300, 100, 1400, 900)
 
         self.input_signals = [AudioSignalModel(),AudioSignalModel()]
         self.output_signal = AudioSignalModel()
