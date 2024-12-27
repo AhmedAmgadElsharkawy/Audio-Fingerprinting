@@ -1,5 +1,7 @@
 from PyQt5.QtWidgets import QMainWindow,QWidget,QHBoxLayout
 from view.audio_viewer import AudioViewer
+from view.input_viewer import InputViewer
+
 
 
 class MainWindow(QMainWindow):
@@ -9,5 +11,5 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(self.main_widget)
 
         self.main_layout = QHBoxLayout(self.main_widget)
-        self.audio_viewer = AudioViewer()
+        self.audio_viewer = InputViewer()
         self.main_layout.addWidget(self.audio_viewer)
