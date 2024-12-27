@@ -7,12 +7,12 @@ class AudioViewer(pg.PlotWidget):
     def __init__(self):
         super().__init__()
         self.playing = False
-        self.setBackground("w")
+        # self.setBackground("w")
         self.showGrid(x=True, y=True)
-        self.getAxis('bottom').setPen(pg.mkPen('k'))  
-        self.getAxis('left').setPen(pg.mkPen('k'))
-        self.getAxis('bottom').setTextPen(pg.mkPen('k')) 
-        self.getAxis('left').setTextPen(pg.mkPen('k')) 
+        # self.getAxis('bottom').setPen(pg.mkPen('k'))  
+        # self.getAxis('left').setPen(pg.mkPen('k'))
+        # self.getAxis('bottom').setTextPen(pg.mkPen('k')) 
+        # self.getAxis('left').setTextPen(pg.mkPen('k')) 
 
         self.play_icon = QIcon("assets/icons/play-button.png")  # Replace with your icon file path
         self.pause_icon = QIcon("assets/icons/pause-button.png")

@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QWidget,QHBoxLayout,QVBoxLayout
+from PyQt5.QtWidgets import QWidget,QHBoxLayout
 from view.audio_viewer import AudioViewer
 from view.custom_slider import CustomSlider
 

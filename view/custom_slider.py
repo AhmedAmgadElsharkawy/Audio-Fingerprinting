@@ -55,6 +55,7 @@ class CustomSlider(QWidget):
         self.main_widget_layout.addWidget(self.signal2_widget)
 
         self.slider.valueChanged.connect(self.slider_change)
+        
 
     def slider_change(self):
         slider_value = self.slider.value()
