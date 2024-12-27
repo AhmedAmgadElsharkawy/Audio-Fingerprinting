@@ -1,5 +1,6 @@
-from PyQt5.QtWidgets import QWidget,QHBoxLayout
+from PyQt5.QtWidgets import QWidget,QHBoxLayout,QVBoxLayout
 from view.audio_viewer import AudioViewer
+from view.custom_slider import CustomSlider
 
 class OutputViewer(QWidget):
     def __init__(self,audio_signal):
@@ -15,6 +16,9 @@ class OutputViewer(QWidget):
         
         self.audio_viewer = AudioViewer()
         self.main_widget_layout.addWidget(self.audio_viewer)
+
+        self.signals_ratio_slider = CustomSlider()
+        self.main_widget_layout.addWidget(self.signals_ratio_slider)
 
         
     
