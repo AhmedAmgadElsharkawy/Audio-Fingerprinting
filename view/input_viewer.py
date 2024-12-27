@@ -4,8 +4,9 @@ from view.audio_viewer import AudioViewer
 from PyQt5.QtCore import Qt
 
 class InputViewer(AudioViewer):
-    def __init__(self):
+    def __init__(self,audio_signal):
         super().__init__()
+        self.audio_signal = audio_signal
 
     def mouseDoubleClickEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
