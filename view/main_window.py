@@ -49,7 +49,7 @@ class MainWindow(QMainWindow):
         self.players_widget_layout.addWidget(self.input_players_widget)
 
         self.input_plyer1 = InputPlayer(self.input_signals[0],header="Song 1")
-        self.input_player2 = InputPlayer(self.input_signals[1],header="Song 1")
+        self.input_player2 = InputPlayer(self.input_signals[1],header="Song 2")
 
         self.input_players_widget_layout.addWidget(self.input_plyer1)
         self.input_players_widget_layout.addWidget(self.input_player2)
