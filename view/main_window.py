@@ -37,7 +37,7 @@ class MainWindow(QMainWindow):
         
         self.main_widget_layout.addWidget(self.viewers_widget)
 
-        self.matched_song_cover = QLabel("No Mathced Song")
+        self.matched_song_cover = QLabel("No Matched Song")
         self.matched_song_cover.setObjectName("matched_song_cover")
         self.main_widget_layout.addWidget(self.matched_song_cover)
         self.matched_song_cover.setAlignment(Qt.AlignCenter)
