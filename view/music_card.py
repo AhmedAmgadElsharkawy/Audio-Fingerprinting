@@ -22,6 +22,8 @@ class MusicCard(QWidget):
         self.music_info_wiget_layout.setContentsMargins(0,0,0,0)
 
         self.order_label = QLabel(song_order)
+        self.order_label.setFixedWidth(25)
+        self.order_label.setAlignment(Qt.AlignmentFlag.AlignCenter)  # Align text to center
         self.order_label.setStyleSheet("font-size: 20px;")
 
         self.album_cover = QLabel()
