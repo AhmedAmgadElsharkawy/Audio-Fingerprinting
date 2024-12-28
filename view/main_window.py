@@ -15,7 +15,7 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle('Fingerprint')
-        self.setGeometry(100,50,1300, 700)
+        self.setGeometry(300,300,1300, 500)
 
         self.input_signals = [MusicModel(),MusicModel()]
         self.output_signal = MusicModel()

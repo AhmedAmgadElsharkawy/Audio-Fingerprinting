@@ -12,6 +12,7 @@ class AudioPlayer(QWidget):
         self.main_widget = QWidget()
         self.main_widget.setObjectName("viewer_main_widget")
         self.main_widget_layout = QVBoxLayout(self.main_widget)
+        self.main_widget_layout.setSpacing(15)
         self.central_layout.addWidget(self.main_widget)
         
         self.header_label = QLabel(header)
