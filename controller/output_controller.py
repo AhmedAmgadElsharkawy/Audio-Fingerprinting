@@ -15,6 +15,7 @@ import io
 class OutputController():
     def __init__(self, output):
         self.output = output
+        self.index = 0
         self.media_player = QMediaPlayer()
     
     def calc(self):
@@ -73,7 +74,8 @@ class OutputController():
 
     def save_and_play_wav(self, modified_data, sample_rate): 
         modified_data_int16 = np.int16(modified_data / np.max(np.abs(modified_data)) * 32767) 
-        output_file_path = "modified.wav" 
+        output_file_path = "modified" + str(self.index) + ".wav"
+        self.index += 1
         wavfile.write(output_file_path, sample_rate, modified_data_int16) 
         return output_file_path
     
@@ -182,8 +184,6 @@ class OutputController():
 
             with open(output_filename, 'w') as f:
                 json.dump(fingerprint, f, indent=4)
-                
-            print(f"Processed {audio_file} -> {output_filename}")
             
         except Exception as e:
             print(f"Error processing {audio_file}: {str(e)}")
