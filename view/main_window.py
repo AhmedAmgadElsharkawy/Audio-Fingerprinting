@@ -1,11 +1,13 @@
-from PyQt5.QtWidgets import QMainWindow,QWidget,QHBoxLayout,QVBoxLayout
+from PyQt5.QtWidgets import QMainWindow,QWidget,QHBoxLayout,QVBoxLayout,QLabel
+from PyQt5.QtGui import QPixmap
+from PyQt5.QtCore import Qt
 
-from view.input_viewer import InputViewer
-from view.output_viewer import OutputViewer
+from view.input_player import InputPlayer
+from view.output_player import OutputPlayer
 
 from model.audio_signal_model import AudioSignalModel
 
-from view.list_viewer import ListViewer
+from view.music_list import MusicList
 
 
 
@@ -13,7 +15,7 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle('Fingerprint')
-        self.setGeometry(300, 100, 1400, 900)
+        self.setFixedSize(800, 500)
 
         self.input_signals = [AudioSignalModel(),AudioSignalModel()]
         self.output_signal = AudioSignalModel()
@@ -24,23 +26,32 @@ class MainWindow(QMainWindow):
 
         self.viewers_widget = QWidget()
         self.viewers_widget.setObjectName("viewers_widget")
+        self.viewers_widget.setObjectName("viewers_widget")
         self.viewers_widget_layout = QVBoxLayout(self.viewers_widget)
+        self.viewers_widget_layout.setContentsMargins(0,0,0,0)
         self.viewers_widget_layout.setSpacing(20)
         
         self.main_widget_layout.addWidget(self.viewers_widget)
+
+        # self.matched_song_cover = QLabel()
+        # self.main_widget_layout.addWidget(self.matched_song_cover)
+        # pixmap = QPixmap("data/music/song1/song_img.jpeg")  # Replace with the image path
+        # self.matched_song_cover.setPixmap(pixmap.scaled(500, 700, Qt.KeepAspectRatio))  # Scale the image
+        # self.matched_song_cover.setAlignment(Qt.AlignCenter)
         
 
 
-        self.input_viewer1 = InputViewer(self.input_signals[0])
-        self.input_viewer2 = InputViewer(self.input_signals[1])
+        self.input_viewer1 = InputPlayer(self.input_signals[0],header="Song 1")
+        self.input_viewer2 = InputPlayer(self.input_signals[1],header="Song 1")
 
         self.viewers_widget_layout.addWidget(self.input_viewer1)
         self.viewers_widget_layout.addWidget(self.input_viewer2)
 
-        self.output_viewer = OutputViewer(self.output_signal)
+        self.output_viewer = OutputPlayer(self.output_signal,header="Mixed Audio")
+        self.viewers_widget_layout.addStretch()
         self.viewers_widget_layout.addWidget(self.output_viewer)
 
-        self.list_viewer = ListViewer()
+        self.list_viewer = MusicList()
         self.main_widget_layout.addWidget(self.list_viewer)
 
         self.setStyleSheet("""
@@ -77,17 +88,17 @@ class MainWindow(QMainWindow):
             }
 
             QSlider::groove:horizontal {
-                height: 15px;
+                height: 10px;
                 background: #444;
                 margin: 0px;
                 border-radius: 4px;
             }
             QSlider::handle:horizontal {
                 background: rgb(4,124,212);
-                width: 16px;
-                height: 12px;
+                width: 12px;
+                height: 8px;
                 border-radius: 6px;
-                margin: -5px 0;
+                margin: -4px 0;
                 border: 1px solid #2a2a2a;
             }
             QSlider::handle:horizontal:hover {

@@ -2,7 +2,7 @@ from PyQt5.QtWidgets import QWidget, QVBoxLayout, QScrollArea,QGridLayout
 from PyQt5.QtCore import Qt
 
 from view.music_card import MusicCard
-class ListViewer(QWidget):
+class MusicList(QWidget):
     def __init__(self):
         super().__init__()
         self.setFixedWidth(500)
@@ -28,8 +28,7 @@ class ListViewer(QWidget):
         self.setStyleSheet("""
 
             QScrollArea {
-                border:1px solid gray;
-                border-radius:20px;
+                border:none;
             }
             QScrollBar:vertical {
                 border: none;
