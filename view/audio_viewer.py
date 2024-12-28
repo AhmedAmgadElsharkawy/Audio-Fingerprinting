@@ -10,6 +10,7 @@ class AudioViewer(QWidget):
         self.central_layout = QVBoxLayout(self)
         self.central_layout.setContentsMargins(0,0,0,0)
         self.main_widget = QWidget()
+        self.main_widget.setObjectName("viewer_main_widget")
         self.main_widget_layout = QVBoxLayout(self.main_widget)
         self.main_widget_layout.setContentsMargins(0,0,0,0)
         self.central_layout.addWidget(self.main_widget)
@@ -27,8 +28,9 @@ class AudioViewer(QWidget):
 
         self.controls_widget = QWidget()
         self.controls_widget_layout = QHBoxLayout(self.controls_widget)
+        self.controls_widget.setObjectName("viewer_controls_widget")
         self.main_widget_layout.addWidget(self.controls_widget)
-        self.controls_widget_layout.setContentsMargins(0,0,0,0)
+        self.controls_widget_layout.setContentsMargins(5,0,5,0)
         self.controls_widget_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
 
         # self.play_icon = QIcon("assets/icons/play-button.png")  # Replace with your icon file path
@@ -44,7 +46,6 @@ class AudioViewer(QWidget):
         self.controls_widget_layout.addWidget(self.play_and_pause_button)
 
         self.play_and_pause_button.setCursor(Qt.CursorShape.PointingHandCursor)
-        
         
         
         

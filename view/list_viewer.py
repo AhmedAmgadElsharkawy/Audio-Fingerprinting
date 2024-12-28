@@ -9,14 +9,15 @@ class ListViewer(QWidget):
         self.central_layout = QVBoxLayout(self)
         self.central_layout.setContentsMargins(0,0,0,0)
         self.main_widget = QWidget()
+        self.main_widget.setObjectName("list_viewer_main_widget")
         self.main_widget_layout = QVBoxLayout(self.main_widget)
         self.main_widget_layout.setSpacing(12)
-        self.main_widget_layout.setAlignment(Qt.AlignmentFlag.AlignTop)  # Align contents to the top
+        self.main_widget_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
         self.main_widget_layout.setContentsMargins(10,5,10,5)
 
         self.scroll_area = QScrollArea()
         self.scroll_area.setWidget(self.main_widget)
-        self.scroll_area.setWidgetResizable(True)  # Make the widget inside scrollable
+        self.scroll_area.setWidgetResizable(True) 
 
         self.central_layout.addWidget(self.scroll_area)
 
@@ -24,9 +25,11 @@ class ListViewer(QWidget):
         self.load_music_cards()
 
     
-        self.scroll_area.setStyleSheet("""
+        self.setStyleSheet("""
+
             QScrollArea {
-                border:none;
+                border:1px solid gray;
+                border-radius:20px;
             }
             QScrollBar:vertical {
                 border: none;

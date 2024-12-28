@@ -12,7 +12,7 @@ from view.list_viewer import ListViewer
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle('FT-Mixer')
+        self.setWindowTitle('Fingerprint')
         self.setGeometry(300, 100, 1400, 900)
 
         self.input_signals = [AudioSignalModel(),AudioSignalModel()]
@@ -23,13 +23,12 @@ class MainWindow(QMainWindow):
         self.main_widget_layout = QHBoxLayout(self.main_widget)
 
         self.viewers_widget = QWidget()
+        self.viewers_widget.setObjectName("viewers_widget")
         self.viewers_widget_layout = QVBoxLayout(self.viewers_widget)
+        self.viewers_widget_layout.setSpacing(20)
         
         self.main_widget_layout.addWidget(self.viewers_widget)
         
-        # self.input_viewers_widget = QWidget()
-        # self.input_viewers_widget_layout = QHBoxLayout(self.input_viewers_widget)
-        # self.viewers_widget_layout.addWidget(self.input_viewers_widget)
 
 
         self.input_viewer1 = InputViewer(self.input_signals[0])
