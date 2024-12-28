@@ -5,9 +5,10 @@ import os
 from PyQt5.QtMultimedia import QMediaPlayer, QMediaContent
 
 class InputPlayer(AudioPlayer):
-    def __init__(self,audio_signal,header):
+    def __init__(self,main_window, audio_signal,header):
         super().__init__(header=header)
         self.audio_signal = audio_signal
+        self.main_window = main_window
         self.upload_signal_button = QPushButton("Upload")
         self.controls_widget_layout.addWidget(self.upload_signal_button)
         self.upload_signal_button.clicked.connect(self.uploadSignal)

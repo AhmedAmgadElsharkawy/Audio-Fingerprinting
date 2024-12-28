@@ -10,6 +10,8 @@ class AudioPlayer(QWidget):
         super().__init__()
         self.playing = False
         self.filepath = None
+        self.main_window = None
+        self.prevent_recursion = False
         self.central_layout = QVBoxLayout(self)
         self.central_layout.setContentsMargins(0,0,0,0)
         self.main_widget = QWidget()
@@ -45,10 +47,11 @@ class AudioPlayer(QWidget):
         }
 """)
         
-
     def toggle_playing(self):
         if not self.filepath:
             return
+        if not self.prevent_recursion:
+            self.toggle_other_file()
         self.playing = not self.playing
         if self.playing:
             self.play_and_pause_button.setText("Pause")
@@ -59,8 +62,15 @@ class AudioPlayer(QWidget):
             self.media_player.pause()
             # self.play_and_pause_button.setIcon(self.play_icon)
 
+    def toggle_other_file(self):
+        players = [self.main_window.input_player1, self.main_window.input_player2]
 
+        for player in players:
+            player.prevent_recursion = True
 
-        
+        for player in players:
+            if player.playing and self != player:
+                player.toggle_playing()
 
-
+        for player in players:
+            player.prevent_recursion = False
