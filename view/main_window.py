@@ -15,7 +15,7 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle('Fingerprint')
-        self.setFixedSize(1300, 500)
+        self.setGeometry(100,50,1300, 700)
 
         self.input_signals = [MusicModel(),MusicModel()]
         self.output_signal = MusicModel()
@@ -30,6 +30,7 @@ class MainWindow(QMainWindow):
 
         self.viewers_widget = QWidget()
         self.viewers_widget.setObjectName("viewers_widget")
+        self.viewers_widget.setFixedWidth(250)
         self.viewers_widget.setObjectName("viewers_widget")
         self.players_widget_layout = QVBoxLayout(self.viewers_widget)
         self.players_widget_layout.setContentsMargins(0,0,0,0)
@@ -39,7 +40,6 @@ class MainWindow(QMainWindow):
         self.matched_song_cover = QLabel("No Mathced Song")
         self.matched_song_cover.setObjectName("matched_song_cover")
         self.main_widget_layout.addWidget(self.matched_song_cover)
-        self.matched_song_cover.setFixedWidth(500)
         self.matched_song_cover.setAlignment(Qt.AlignCenter)
         
 
@@ -55,6 +55,7 @@ class MainWindow(QMainWindow):
         self.input_players_widget_layout.addWidget(self.input_player2)
 
         self.output_viewer = OutputPlayer(self.output_signal,header="Mixed Audio")
+        self.players_widget_layout.addStretch()
         self.players_widget_layout.addWidget(self.output_viewer)
 
         self.music_list_viewer = MusicList(self.songs_list)

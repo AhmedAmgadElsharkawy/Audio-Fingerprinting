@@ -9,6 +9,7 @@ class OutputPlayer(AudioPlayer):
     def __init__(self,audio_signal,header):
         super().__init__(header=header)
         self.audio_signal = audio_signal
+        self.setFixedHeight(260)
 
         self.match_button = QPushButton("Match")
         self.controls_widget_layout.addWidget(self.match_button)
