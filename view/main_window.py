@@ -54,7 +54,7 @@ class MainWindow(QMainWindow):
         self.input_players_widget_layout.addWidget(self.input_player1)
         self.input_players_widget_layout.addWidget(self.input_player2)
 
-        self.output_viewer = OutputPlayer(self.output_signal,header="Mixed Audio")
+        self.output_viewer = OutputPlayer(self, self.output_signal, header="Mixed Audio")
         self.players_widget_layout.addStretch()
         self.players_widget_layout.addWidget(self.output_viewer)
 

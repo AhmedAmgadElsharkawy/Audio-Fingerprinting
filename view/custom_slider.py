@@ -2,7 +2,7 @@ from PyQt5.QtWidgets import QWidget,QHBoxLayout,QSlider,QVBoxLayout,QLabel
 from PyQt5.QtCore import Qt
 
 class CustomSlider(QWidget):
-    def __init__(self,name):
+    def __init__(self, name):
         super().__init__()
         self.signal_ratio_value = 0
         self.central_layout = QHBoxLayout(self)
