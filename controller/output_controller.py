@@ -1,6 +1,8 @@
 import numpy as np
 from scipy.io import wavfile
 from PyQt5.QtMultimedia import QMediaPlayer
+from PyQt5.QtCore import QSize, Qt, QUrl
+from PyQt5.QtMultimedia import QMediaPlayer, QMediaContent
 
 class OutputController():
     def __init__(self, output):
@@ -9,9 +11,9 @@ class OutputController():
     
     def calc(self):
         volume1, volume2 = self.output.signal1_slider.signal_ratio_value / 100, self.output.signal2_slider.signal_ratio_value / 100
-        self.play_mixed_audio(self.output.main_window.input_player1.audio_signal.file_path, self.output.main_window.input_player2.audio_signal.file_path, volume1, volume2)
+        self.mix_audios(self.output.main_window.input_player1.audio_signal.file_path, self.output.main_window.input_player2.audio_signal.file_path, volume1, volume2)
 
-    def play_mixed_audio(self, file1_path, file2_path, volume1, volume2):
+    def mix_audios(self, file1_path, file2_path, volume1, volume2):
         try:
             if not file1_path and not file2_path or volume1 == 0 and volume2 == 0:
                 return
@@ -51,7 +53,9 @@ class OutputController():
             mixed_data = np.clip(mixed_data, -32768, 32767)
 
             temp_file_path = self.save_and_play_wav(mixed_data, sample_rate)
-            self.output.file_path = temp_file_path
+            self.output.filepath = temp_file_path
+            print(self.output.filepath)
+            self.output.media_player.setMedia(QMediaContent(QUrl.fromLocalFile(self.output.filepath)))
 
         except Exception as e:
             print(f"Error occurred while mixing or playing audio: {e}")
@@ -61,3 +65,15 @@ class OutputController():
         output_file_path = "modified.wav" 
         wavfile.write(output_file_path, sample_rate, modified_data_int16) 
         return output_file_path
+    
+    def play_mixed_audio(self):
+        if not self.output.filepath:
+            return
+    
+        self.output.playing = not self.output.playing
+        if self.output.playing:
+            self.output.play_and_pause_button.setText("Pause")
+            self.output.media_player.play()
+        else:
+            self.output.play_and_pause_button.setText("Play")
+            self.output.media_player.pause()

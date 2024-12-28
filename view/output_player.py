@@ -28,7 +28,9 @@ class OutputPlayer(AudioPlayer):
         self.signal2_slider = CustomSlider("Song2 Ratio")
         self.sliders_widget_layout.addWidget(self.signal1_slider)
         self.sliders_widget_layout.addWidget(self.signal2_slider)
-        self.match_button.clicked.connect(self.calc)
+        self.match_button.clicked.connect(self.mix)
+        self.play_and_pause_button.clicked.disconnect(self.toggle_playing)
+        self.play_and_pause_button.clicked.connect(self.play_mixed_song)
 
         self.sliders_widget.setStyleSheet("""
             #sliders_widget{
@@ -36,5 +38,8 @@ class OutputPlayer(AudioPlayer):
             }
         """)
 
-    def calc(self):
+    def mix(self):
         self.output_controller.calc()
+
+    def play_mixed_song(self):
+        self.output_controller.play_mixed_audio()
