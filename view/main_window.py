@@ -5,7 +5,7 @@ from PyQt5.QtCore import Qt
 from view.input_player import InputPlayer
 from view.output_player import OutputPlayer
 
-from model.audio_signal_model import AudioSignalModel
+from model.music_model import MusicModel
 
 from view.music_list import MusicList
 
@@ -15,44 +15,50 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle('Fingerprint')
-        self.setFixedSize(800, 500)
+        self.setFixedSize(1300, 500)
 
-        self.input_signals = [AudioSignalModel(),AudioSignalModel()]
-        self.output_signal = AudioSignalModel()
+        self.input_signals = [MusicModel(),MusicModel()]
+        self.output_signal = MusicModel()
+
+        self.songs_list = [MusicModel(),MusicModel(),MusicModel(),MusicModel(),MusicModel(),MusicModel(),MusicModel(),MusicModel(),MusicModel(),MusicModel(),MusicModel(),MusicModel(),MusicModel(),MusicModel()]
 
         self.main_widget = QWidget(self)
         self.setCentralWidget(self.main_widget)
         self.main_widget_layout = QHBoxLayout(self.main_widget)
+        self.main_widget_layout.setSpacing(10)
+
 
         self.viewers_widget = QWidget()
         self.viewers_widget.setObjectName("viewers_widget")
         self.viewers_widget.setObjectName("viewers_widget")
-        self.viewers_widget_layout = QVBoxLayout(self.viewers_widget)
-        self.viewers_widget_layout.setContentsMargins(0,0,0,0)
-        self.viewers_widget_layout.setSpacing(20)
+        self.players_widget_layout = QVBoxLayout(self.viewers_widget)
+        self.players_widget_layout.setContentsMargins(0,0,0,0)
         
         self.main_widget_layout.addWidget(self.viewers_widget)
 
-        # self.matched_song_cover = QLabel()
-        # self.main_widget_layout.addWidget(self.matched_song_cover)
-        # pixmap = QPixmap("data/music/song1/song_img.jpeg")  # Replace with the image path
-        # self.matched_song_cover.setPixmap(pixmap.scaled(500, 700, Qt.KeepAspectRatio))  # Scale the image
-        # self.matched_song_cover.setAlignment(Qt.AlignCenter)
+        self.matched_song_cover = QLabel("No Mathced Song")
+        self.matched_song_cover.setObjectName("matched_song_cover")
+        self.main_widget_layout.addWidget(self.matched_song_cover)
+        self.matched_song_cover.setFixedWidth(500)
+        self.matched_song_cover.setAlignment(Qt.AlignCenter)
         
 
+        self.input_players_widget = QWidget()
+        self.input_players_widget_layout = QVBoxLayout(self.input_players_widget)
+        self.input_players_widget_layout.setContentsMargins(0,0,0,0)
+        self.players_widget_layout.addWidget(self.input_players_widget)
 
-        self.input_viewer1 = InputPlayer(self.input_signals[0],header="Song 1")
-        self.input_viewer2 = InputPlayer(self.input_signals[1],header="Song 1")
+        self.input_plyer1 = InputPlayer(self.input_signals[0],header="Song 1")
+        self.input_player2 = InputPlayer(self.input_signals[1],header="Song 1")
 
-        self.viewers_widget_layout.addWidget(self.input_viewer1)
-        self.viewers_widget_layout.addWidget(self.input_viewer2)
+        self.input_players_widget_layout.addWidget(self.input_plyer1)
+        self.input_players_widget_layout.addWidget(self.input_player2)
 
         self.output_viewer = OutputPlayer(self.output_signal,header="Mixed Audio")
-        self.viewers_widget_layout.addStretch()
-        self.viewers_widget_layout.addWidget(self.output_viewer)
+        self.players_widget_layout.addWidget(self.output_viewer)
 
-        self.list_viewer = MusicList()
-        self.main_widget_layout.addWidget(self.list_viewer)
+        self.music_list_viewer = MusicList(self.songs_list)
+        self.main_widget_layout.addWidget(self.music_list_viewer)
 
         self.setStyleSheet("""
             * {
@@ -60,6 +66,10 @@ class MainWindow(QMainWindow):
                 color: #E0E0E0;
                 font-family: Arial;
             }
+            #matched_song_cover{
+                    border:1px solid gray;
+                    border-radius:5px;           
+                }
             QMainWindow {
                 background-color: #121212;
             }

@@ -3,9 +3,10 @@ from PyQt5.QtCore import Qt
 
 from view.music_card import MusicCard
 class MusicList(QWidget):
-    def __init__(self):
+    def __init__(self,songs_list):
         super().__init__()
         self.setFixedWidth(500)
+        self.songs_list = songs_list
         self.central_layout = QVBoxLayout(self)
         self.central_layout.setContentsMargins(0,0,0,0)
         self.main_widget = QWidget()
@@ -21,7 +22,6 @@ class MusicList(QWidget):
 
         self.central_layout.addWidget(self.scroll_area)
 
-        self.music_card_list = [MusicCard(),MusicCard(),MusicCard(),MusicCard(),MusicCard(),MusicCard(),MusicCard(),MusicCard(),MusicCard(),MusicCard(),MusicCard(),MusicCard(),MusicCard(),MusicCard()]
         self.load_music_cards()
 
     
@@ -58,8 +58,9 @@ class MusicList(QWidget):
 
 
     def load_music_cards(self):
-        for card in self.music_card_list:
-            self.main_widget_layout.addWidget(card)
+        for i,song in enumerate(self.songs_list):
+            music_card = MusicCard(song_order=str(i+1),artist_name="The Weeknd",album_cover_path="data/music/song1/song_img.jpeg",song_title="save your tears",similarity_ratio_value = 50)
+            self.main_widget_layout.addWidget(music_card)
             
 
         

@@ -4,7 +4,7 @@ from PyQt5.QtCore import Qt
 
 
 class MusicCard(QWidget):
-    def __init__(self):
+    def __init__(self,song_order,album_cover_path,song_title,artist_name,similarity_ratio_value):
         super().__init__()
         self.setFixedHeight(60)
         self.central_layout = QHBoxLayout(self)
@@ -21,16 +21,16 @@ class MusicCard(QWidget):
         self.music_info_wiget_layout = QHBoxLayout(self.music_info_widget)
         self.music_info_wiget_layout.setContentsMargins(0,0,0,0)
 
-        self.order_label = QLabel("1")
+        self.order_label = QLabel(song_order)
         self.order_label.setStyleSheet("font-size: 20px;")
 
         self.album_cover = QLabel()
-        pixmap = QPixmap("data/music/song1/song_img.jpeg")  # Replace with the image path
+        pixmap = QPixmap(album_cover_path)  # Replace with the image path
         self.album_cover.setPixmap(pixmap.scaled(60, 60, Qt.KeepAspectRatio))  # Scale the image
         self.album_cover.setAlignment(Qt.AlignCenter)
 
-        self.song_title = QLabel("Save Your Tears")
-        self.artist_name = QLabel("The Weeknd")
+        self.song_title = QLabel(song_title)
+        self.artist_name = QLabel(artist_name)
         self.song_title.setStyleSheet("font-weight: bold; font-size: 14px;")
         self.artist_name.setStyleSheet("font-size: 12px; color: gray;")
 
@@ -51,7 +51,7 @@ class MusicCard(QWidget):
         self.similarity_ratio_bar.setRange(0, 100) 
         self.similarity_ratio_bar.setTextVisible(True)
         self.similarity_ratio_bar.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.similarity_ratio_bar.setValue(20)
+        self.similarity_ratio_bar.setValue(similarity_ratio_value)
         self.main_widget_layout.addStretch()
         self.main_widget_layout.addWidget(self.similarity_ratio_bar)
 

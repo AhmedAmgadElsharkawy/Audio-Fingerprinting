@@ -6,7 +6,6 @@ from PyQt5.QtCore import QSize,Qt
 class AudioPlayer(QWidget):
     def __init__(self,header):
         super().__init__()
-        self.setFixedWidth(230)
         self.playing = False
         self.central_layout = QVBoxLayout(self)
         self.central_layout.setContentsMargins(0,0,0,0)

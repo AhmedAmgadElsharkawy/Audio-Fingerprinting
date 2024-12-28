@@ -16,18 +16,19 @@ class OutputPlayer(AudioPlayer):
 
         self.sliders_widget = QWidget()
         self.sliders_widget_layout = QVBoxLayout(self.sliders_widget)
-        self.sliders_widget_layout.setContentsMargins(0,0,0,0)
-        self.controls_widget_layout.addWidget(self.sliders_widget)
-        self.signal1_slider = CustomSlider("S1")
-        self.signal2_slider = CustomSlider("S2")
+        self.sliders_widget_layout.setSpacing(10)
+        self.sliders_widget.setObjectName("sliders_widget")
+        self.main_widget_layout.addStretch()
+        self.main_widget_layout.addWidget(self.sliders_widget)
+        self.signal1_slider = CustomSlider("Song1 Ratio")
+        self.signal2_slider = CustomSlider("Song2 Ratio")
         self.sliders_widget_layout.addWidget(self.signal1_slider)
         self.sliders_widget_layout.addWidget(self.signal2_slider)
         
 
-        
-
-
-
-
-        
+        self.sliders_widget.setStyleSheet("""
+            #sliders_widget{
+                border:1px solid gray;
+            }
+        """)
     
