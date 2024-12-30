@@ -82,7 +82,7 @@ class OutputController:
         
         return output_path
     def _save_features(self, features, filename):
-        """Save audio features to JSON file"""
+        """Save audio features to txt file"""
         feature_path = os.path.join('output/features', f"{filename}_features.txt")
         with open(feature_path, 'w') as f:
             json.dump(features, f, indent=2)
