@@ -1,6 +1,6 @@
 import os
 import json
-from scipy.io import wavfile
+import soundfile as sf
 from PyQt5.QtCore import QUrl
 from PyQt5.QtMultimedia import QMediaContent
 from audio.audio_mixer import AudioMixer
@@ -10,6 +10,7 @@ from view.music_card import MusicCard
 from view.image_display import ImageDisplay
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtCore import Qt
+from datetime import datetime
 
 class OutputController:
     def __init__(self, output):
@@ -18,42 +19,6 @@ class OutputController:
         self.audio_mixer = AudioMixer()
         self.feature_extractor = AudioFeatureExtractor()
         self.similarity_calculator = SimilarityCalculator()
-
-    def calc(self):
-        if not self._validate_inputs():
-            return
-
-        # Get mixing ratios
-        volume1 = self.output.signal1_slider.signal_ratio_value / 100
-        volume2 = self.output.signal2_slider.signal_ratio_value / 100
-
-        # Extract features from both input files
-        input1_features = self.feature_extractor.extract_features(
-            self.output.main_window.input_player1.filepath
-        )
-        input2_features = self.feature_extractor.extract_features(
-            self.output.main_window.input_player2.filepath
-        )
-
-        # Mix audio files
-        mixed_path = self._mix_audio_files(volume1, volume2)
-        if not mixed_path:
-            return
-
-        # Find similarities
-        similarities = self._find_similarities(
-            input1_features, 
-            input2_features,
-            volume1,
-            volume2
-        )
-
-        # Update UI with results
-        self._update_ui_with_results(similarities)
-
-    def _validate_inputs(self):
-        return (self.output.main_window.input_player1.filepath and 
-                self.output.main_window.input_player2.filepath)
 
     def _mix_audio_files(self, volume1, volume2):
         mixed_data, sample_rate = self.audio_mixer.mix_audio_files(
@@ -66,9 +31,15 @@ class OutputController:
         if mixed_data is None:
             return None
 
-        output_path = f"mixed_{self.index}.wav"
-        self.index += 1
-        wavfile.write(output_path, sample_rate, mixed_data)
+        # Create output directory if it doesn't exist
+        os.makedirs('output/audio', exist_ok=True)
+
+        # Generate unique filename with timestamp
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        output_path = os.path.join('output/audio', f'mixed_{timestamp}.wav')
+        
+        # Save mixed audio
+        sf.write(output_path, mixed_data, sample_rate)
         
         self.output.filepath = output_path
         self.output.media_player.setMedia(
@@ -76,6 +47,38 @@ class OutputController:
         )
         
         return output_path
+
+    def calc(self):
+        if not self._validate_inputs():
+            return
+
+        # Get mixing ratios
+        volume1 = self.output.signal1_slider.signal_ratio_value / 100
+        volume2 = self.output.signal2_slider.signal_ratio_value / 100
+
+        # Mix audio files and save
+        mixed_path = self._mix_audio_files(volume1, volume2)
+        if not mixed_path:
+            return
+
+        # Extract features and find similarities
+        similarities = self._find_similarities(
+            self.feature_extractor.extract_features(self.output.main_window.input_player1.filepath),
+            self.feature_extractor.extract_features(self.output.main_window.input_player2.filepath),
+            volume1,
+            volume2
+        )
+
+        # Update UI with results
+        self._update_ui_with_results(similarities)
+
+
+    def _validate_inputs(self):
+        return (self.output.main_window.input_player1.filepath and 
+                self.output.main_window.input_player2.filepath)
+
+    
+
 
     def _find_similarities(self, input1_features, input2_features, volume1, volume2):
         similarities = []
@@ -176,7 +179,7 @@ class OutputController:
     def play_mixed_audio(self):
         if not self.output.filepath:
             return
-    
+        
         self.output.playing = not self.output.playing
         if self.output.playing:
             self.output.play_and_pause_button.setText("Pause")
