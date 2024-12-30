@@ -1,145 +1,178 @@
-import numpy as np
-from scipy.io import wavfile
-from PyQt5.QtMultimedia import QMediaPlayer
-from PyQt5.QtCore import QUrl
-from PyQt5.QtMultimedia import QMediaPlayer, QMediaContent
-import librosa
-import numpy as np
-import matplotlib.pyplot as plt
 import os
 import json
-import imagehash
-from PIL import Image
-import io
+from scipy.io import wavfile
+from PyQt5.QtCore import QUrl
+from PyQt5.QtMultimedia import QMediaContent
+from audio.audio_mixer import AudioMixer
+from audio.feature_extractor import AudioFeatureExtractor
+from audio.similarity_calculator import SimilarityCalculator
 from view.music_card import MusicCard
+from view.image_display import ImageDisplay
+from PyQt5.QtGui import QPixmap
+from PyQt5.QtCore import Qt
 
-class OutputController():
+class OutputController:
     def __init__(self, output):
         self.output = output
         self.index = 0
-        self.media_player = QMediaPlayer()
-    
+        self.audio_mixer = AudioMixer()
+        self.feature_extractor = AudioFeatureExtractor()
+        self.similarity_calculator = SimilarityCalculator()
+
     def calc(self):
-        # Validate input files exist
-        if not self.output.main_window.input_player1.filepath or not self.output.main_window.input_player2.filepath:
+        if not self._validate_inputs():
             return
-            
-        # Mix audio files
+
+        # Get mixing ratios
         volume1 = self.output.signal1_slider.signal_ratio_value / 100
         volume2 = self.output.signal2_slider.signal_ratio_value / 100
-        
-        mixed_path = self.mix_audios(
+
+        # Extract features from both input files
+        input1_features = self.feature_extractor.extract_features(
+            self.output.main_window.input_player1.filepath
+        )
+        input2_features = self.feature_extractor.extract_features(
+            self.output.main_window.input_player2.filepath
+        )
+
+        # Mix audio files
+        mixed_path = self._mix_audio_files(volume1, volume2)
+        if not mixed_path:
+            return
+
+        # Find similarities
+        similarities = self._find_similarities(
+            input1_features, 
+            input2_features,
+            volume1,
+            volume2
+        )
+
+        # Update UI with results
+        self._update_ui_with_results(similarities)
+
+    def _validate_inputs(self):
+        return (self.output.main_window.input_player1.filepath and 
+                self.output.main_window.input_player2.filepath)
+
+    def _mix_audio_files(self, volume1, volume2):
+        mixed_data, sample_rate = self.audio_mixer.mix_audio_files(
             self.output.main_window.input_player1.filepath,
             self.output.main_window.input_player2.filepath,
             volume1,
             volume2
         )
+
+        if mixed_data is None:
+            return None
+
+        output_path = f"mixed_{self.index}.wav"
+        self.index += 1
+        wavfile.write(output_path, sample_rate, mixed_data)
         
-        # Validate mixed file was created
-        if not mixed_path or not os.path.exists(mixed_path):
-            return
-            
-        # Extract features from mixed audio
-        mixed_features = self.extract_audio_features(mixed_path)
+        self.output.filepath = output_path
+        self.output.media_player.setMedia(
+            QMediaContent(QUrl.fromLocalFile(output_path))
+        )
         
-        # Load and compare with reference fingerprints
+        return output_path
+
+    def _find_similarities(self, input1_features, input2_features, volume1, volume2):
         similarities = []
         features_dir = "data/Songs_Features"
         
         for file in os.listdir(features_dir):
-            if file.endswith("_fingerprint.txt"):
-                with open(os.path.join(features_dir, file), 'r') as f:
-                    ref_features = json.load(f)
-                    similarity = self.compare_features(mixed_features, ref_features['features'])
-                    song_name = os.path.splitext(file)[0].replace('_fingerprint', '')
-                    similarities.append({
-                        'name': song_name,
-                        'similarity': similarity
-                    })
+            if not file.endswith("_fingerprint.txt"):
+                continue
+                
+            with open(os.path.join(features_dir, file), 'r') as f:
+                ref_data = json.load(f)
+                ref_features = ref_data['features']
+                
+                # Calculate similarity with both input files
+                similarity1 = self.similarity_calculator.calculate_similarity(
+                    input1_features, 
+                    ref_features
+                )
+                similarity2 = self.similarity_calculator.calculate_similarity(
+                    input2_features,
+                    ref_features
+                )
+                
+                # Weight similarities based on mixing ratios
+                weighted_similarity = (
+                    similarity1 * volume1 + 
+                    similarity2 * volume2
+                ) / (volume1 + volume2 if volume1 + volume2 > 0 else 1)
+
+                song_name = os.path.splitext(file)[0].replace('_fingerprint', '')
+                similarities.append({
+                    'name': song_name,
+                    'similarity': weighted_similarity
+                })
         
-        # Group and sort similarities
-        song_groups = self.group_similarities(similarities)
+        return sorted(similarities, key=lambda x: x['similarity'], reverse=True)
+
+    def _is_similar_title(self, title1, title2):
+        # Remove spaces and convert to lowercase for comparison
+        t1 = title1.lower().replace(' ', '')
+        t2 = title2.lower().replace(' ', '')
         
-        # Sort by max similarity
-        sorted_songs = sorted(
-            song_groups.items(),
-            key=lambda x: x[1]['max_similarity'],
-            reverse=True
-        )
-        
-        # Update GUI
+        # Check if one is contained in the other or if they're very similar
+        return t1 in t2 or t2 in t1 or (len(t1) > 0 and len(t2) > 0 and 
+            (t1.startswith(t2) or t2.startswith(t1)))
+
+    def _update_ui_with_results(self, similarities):
+        # Clear existing cards
         for widget in self.output.main_window.music_list_viewer.findChildren(MusicCard):
             widget.deleteLater()
             
-        for i, (base_name, song_data) in enumerate(sorted_songs):
-            # Create card showing max similarity
+        seen_songs = []  # Track unique song names as a list to compare similarity
+        card_count = 0
+        
+        # Update central image with top match
+        if similarities and len(similarities) > 0:
+            top_song = similarities[0]
+            group_num = top_song['name'].split('_')[0]
+            top_image_path = f"data/images/{group_num}.jpg"
+            pixmap = QPixmap(top_image_path)
+            if not pixmap.isNull():
+                self.output.main_window.matched_song_cover.setPixmap(
+                    pixmap.scaled(400, 400, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+                )
+                self.output.main_window.matched_song_cover.setAlignment(Qt.AlignCenter)
+        
+        # Add cards for unique matches
+        for song in similarities:
+            parts = song['name'].split('_')
+            if len(parts) < 2:
+                continue
+                
+            song_title = parts[1]
+            
+            # Check if we have a similar song title already
+            is_duplicate = any(self._is_similar_title(song_title, existing) for existing in seen_songs)
+            if is_duplicate:
+                continue
+                
+            seen_songs.append(song_title)
+            
+            # Use the group number for the image path
+            group_image_path = f"data/images/{parts[0]}.jpg"
+            
             card = MusicCard(
-                song_order=str(i+1),
-                album_cover_path="assets/cover.jpg",
-                song_title=song_data['title'],
-                artist_name=f"{song_data['group']}",
-                similarity_ratio_value=int(song_data['max_similarity'])
+                song_order=str(card_count + 1),
+                album_cover_path=group_image_path,
+                song_title=song_title,
+                artist_name=parts[0],
+                similarity_ratio_value=int(song['similarity'])
             )
             self.output.main_window.music_list_viewer.main_widget_layout.addWidget(card)
-
-    def mix_audios(self, file1_path, file2_path, volume1, volume2):
-        try:
-            if not file1_path and not file2_path or volume1 == 0 and volume2 == 0:
-                return
             
-            sample_rate = -1
-            data1, data2 = 0, 0
+            card_count += 1
+            if card_count >= 10:
+                break
 
-            if file1_path:
-                sample_rate, data1 = wavfile.read(file1_path)
-            else:
-                sample_rate = 44100
-                data1 = np.zeros(44100, dtype=np.int16)
-
-            if file2_path:
-                temp = sample_rate
-                sample_rate, data2 = wavfile.read(file2_path)
-                if not file1_path:
-                    data1 = np.zeros_like(data2)
-                else:
-                    sample_rate = (sample_rate + temp) // 2
-            else:
-                data2 = np.zeros_like(data1)
-
-            if len(data1.shape) > 1:
-                data1 = data1.mean(axis=1).astype(np.int16)
-            if len(data2.shape) > 1:
-                data2 = data2.mean(axis=1).astype(np.int16)
-
-            min_length = min(len(data1), len(data2))
-            data1 = data1[:min_length]
-            data2 = data2[:min_length]
-
-            data1 = data1 * volume1
-            data2 = data2 * volume2
-
-            data1 = np.clip(data1, -32768, 32767)
-            data2 = np.clip(data2, -32768, 32767)
-
-            mixed_data = data1 + data2
-            mixed_data = np.clip(mixed_data, -32768, 32767)
-
-            temp_file_path = self.save_and_play_wav(mixed_data, sample_rate)
-            self.output.filepath = temp_file_path
-            self.output.media_player.setMedia(QMediaContent(QUrl.fromLocalFile(self.output.filepath)))
-            self.process_audio_file()
-            return temp_file_path
-
-        except Exception as e:
-            print(f"Error occurred while mixing or playing audio: {e}")
-
-    def save_and_play_wav(self, modified_data, sample_rate): 
-        modified_data_int16 = np.int16(modified_data / np.max(np.abs(modified_data)) * 32767) 
-        output_file_path = "modified" + str(self.index) + ".wav"
-        self.index += 1
-        wavfile.write(output_file_path, sample_rate, modified_data_int16) 
-        return output_file_path
-    
     def play_mixed_audio(self):
         if not self.output.filepath:
             return
@@ -151,146 +184,3 @@ class OutputController():
         else:
             self.output.play_and_pause_button.setText("Play")
             self.output.media_player.pause()
-    
-    def extract_audio_features(self, audio_file_path):
-        y, sr = librosa.load(audio_file_path, duration=30)  
-
-        # Extract features
-        mfccs = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=20)
-        spectral_centroid = librosa.feature.spectral_centroid(y=y, sr=sr)
-        spectral_rolloff = librosa.feature.spectral_rolloff(y=y, sr=sr)
-        zero_crossing_rate = librosa.feature.zero_crossing_rate(y)
-        chroma_features = librosa.feature.chroma_cqt(y=y, sr=sr)
-        tempo = librosa.beat.beat_track(y=y, sr=sr)
-
-        # Calculate mean and standard deviation of features
-        mfcc_mean = np.mean(mfccs, axis=1).tolist()  
-        mfcc_std = np.std(mfccs, axis=1).tolist()
-        spectral_centroid_mean = float(np.mean(spectral_centroid))
-        spectral_rolloff_mean = float(np.mean(spectral_rolloff))
-        zero_crossing_rate_mean = float(np.mean(zero_crossing_rate))
-        chroma_mean = np.mean(chroma_features, axis=1).tolist()
-
-        features = {
-            'mfcc_mean': mfcc_mean,
-            'mfcc_std': mfcc_std,
-            'spectral_centroid_mean': spectral_centroid_mean,
-            'spectral_rolloff_mean': spectral_rolloff_mean,
-            'zero_crossing_rate_mean': zero_crossing_rate_mean,
-            'chroma_mean': chroma_mean,
-            'tempo': float(tempo[0])  # Fixed tempo extraction
-        }
-        return features
-
-    def normalize_array(self, arr):
-        arr = np.array(arr)
-        min_val = np.min(arr)
-        max_val = np.max(arr)
-        if max_val == min_val:
-            return np.zeros_like(arr)
-        return (arr - min_val) / (max_val - min_val)
-
-    def normalize_value(self, val):
-        return float(val) / (1 + abs(float(val)))
-
-    def generate_audio_fingerprint(self, features):
-        # Get the size of MFCC features to use as reference
-        mfcc_size = len(features['mfcc_mean'])
-        
-        # Interpolate chroma features to match MFCC size
-        chroma_interpolated = np.interp(
-            np.linspace(0, 1, mfcc_size),
-            np.linspace(0, 1, len(features['chroma_mean'])),
-            self.normalize_array(features['chroma_mean'])
-        )
-        
-        feature_matrix = np.vstack([
-            self.normalize_array(features['mfcc_mean']).reshape(1, -1),
-            self.normalize_array(features['mfcc_std']).reshape(1, -1),
-            np.full((1, mfcc_size), self.normalize_value(features['spectral_centroid_mean'])),
-            np.full((1, mfcc_size), self.normalize_value(features['spectral_rolloff_mean'])),
-            np.full((1, mfcc_size), self.normalize_value(features['zero_crossing_rate_mean'])),
-            chroma_interpolated.reshape(1, -1),
-            np.full((1, mfcc_size), self.normalize_value(features['tempo']))
-        ])
-        
-        plt.figure(figsize=(8, 8))
-        plt.imshow(feature_matrix, cmap='viridis', aspect='auto')
-        plt.axis('off')
-        
-        buf = io.BytesIO()
-        plt.savefig(buf, format='png')
-        plt.close()
-        buf.seek(0)
-
-        image = Image.open(buf)
-        hash_value = str(imagehash.average_hash(image))
-        
-        return {
-            'features': features,
-            'hash': hash_value
-        }
-
-    def process_audio_file(self):
-        audio_file = self.output.filepath
-        try:
-            # Extract features
-            features = self.extract_audio_features(audio_file)
-            
-            # Generate fingerprint with hash
-            fingerprint = self.generate_audio_fingerprint(features)
-            
-            # Save features and hash to file
-            output_filename = os.path.splitext(audio_file)[0] + '_fingerprint.txt'
-
-            with open(output_filename, 'w') as f:
-                json.dump(fingerprint, f, indent=4)
-            
-        except Exception as e:
-            print(f"Error processing {audio_file}: {str(e)}")
-
-    def compare_features(self, features1, features2):
-        mfcc_diff = np.mean(np.abs(np.array(features1['mfcc_mean']) - np.array(features2['mfcc_mean'])))
-        similarity = max(0, 100 - (mfcc_diff * 2))  # Scale similarity to 0-100
-        return similarity
-
-    def group_similarities(self, similarities):
-        song_groups = {}
-        
-        # Get mixing ratios
-        vocals_ratio = self.output.signal1_slider.signal_ratio_value / 100.0
-        music_ratio = self.output.signal2_slider.signal_ratio_value / 100.0
-        
-        for song in similarities:
-            parts = song['name'].split('_')
-            if len(parts) < 2:
-                continue
-                
-            base_name = '_'.join(parts[:-1])
-            variant_type = parts[-1]  # full, vocals, music
-            
-            if base_name not in song_groups:
-                song_groups[base_name] = {
-                    'group': parts[0],
-                    'title': parts[1],
-                    'max_similarity': 0,
-                    'variants': {}
-                }
-            
-            # Calculate weighted similarity based on complementary ratios
-            weighted_similarity = song['similarity']
-            if variant_type == 'vocals':
-                weighted_similarity *= vocals_ratio if vocals_ratio > 0 else 0
-            elif variant_type == 'music':
-                weighted_similarity *= music_ratio if music_ratio > 0 else 0
-            elif variant_type == 'full':
-                # For full songs, use average of both ratios
-                weighted_similarity *= (vocals_ratio + music_ratio) / 2
-                
-            song_groups[base_name]['variants'][variant_type] = weighted_similarity
-            song_groups[base_name]['max_similarity'] = max(
-                song_groups[base_name]['max_similarity'],
-                weighted_similarity
-            )
-        
-        return song_groups
