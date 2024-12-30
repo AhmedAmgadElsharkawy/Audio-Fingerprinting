@@ -1,16 +1,13 @@
 import os
 import json
 import soundfile as sf
-from PyQt5.QtCore import QUrl
+from PyQt5.QtCore import QUrl, Qt
 from PyQt5.QtMultimedia import QMediaContent
+from PyQt5.QtGui import QPixmap
 from audio.audio_mixer import AudioMixer
 from audio.feature_extractor import AudioFeatureExtractor
 from audio.similarity_calculator import SimilarityCalculator
-from view.music_card import MusicCard
-from view.image_display import ImageDisplay
-from PyQt5.QtGui import QPixmap
-from PyQt5.QtCore import Qt
-from datetime import datetime
+from view.music_card import MusicCard  
 
 class OutputController:
     def __init__(self, output):
@@ -19,8 +16,48 @@ class OutputController:
         self.audio_mixer = AudioMixer()
         self.feature_extractor = AudioFeatureExtractor()
         self.similarity_calculator = SimilarityCalculator()
+        
+        # Create necessary directories
+        os.makedirs('output/audio', exist_ok=True)
+        os.makedirs('output/features', exist_ok=True)
 
-    def _mix_audio_files(self, volume1, volume2):
+    def calc(self):
+        if not self._validate_inputs():
+            return
+
+        # Get mixing ratios
+        volume1 = self.output.signal1_slider.signal_ratio_value / 100
+        volume2 = self.output.signal2_slider.signal_ratio_value / 100
+
+        # Extract features from both input files
+        input1_features = self.feature_extractor.extract_features(
+            self.output.main_window.input_player1.filepath
+        )
+        input2_features = self.feature_extractor.extract_features(
+            self.output.main_window.input_player2.filepath
+        )
+
+        # Mix audio files and save
+        mixed_path = self._mix_and_save_audio(volume1, volume2)
+        if not mixed_path:
+            return
+
+        # Extract and save features of mixed audio
+        mixed_features = self.feature_extractor.extract_features(mixed_path)
+        self._save_features(mixed_features, f'mixed_song_{self.index}')
+
+        # Find similarities
+        similarities = self._find_similarities(
+            input1_features, 
+            input2_features,
+            volume1,
+            volume2
+        )
+
+        # Update UI with results
+        self._update_ui_with_results(similarities)
+
+    def _mix_and_save_audio(self, volume1, volume2):
         mixed_data, sample_rate = self.audio_mixer.mix_audio_files(
             self.output.main_window.input_player1.filepath,
             self.output.main_window.input_player2.filepath,
@@ -31,14 +68,11 @@ class OutputController:
         if mixed_data is None:
             return None
 
-        # Create output directory if it doesn't exist
-        os.makedirs('output/audio', exist_ok=True)
-
-        # Generate unique filename with timestamp
-        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        output_path = os.path.join('output/audio', f'mixed_{timestamp}.wav')
+        # Increment index for next mixed song
+        self.index += 1
         
-        # Save mixed audio
+        # Save with sequential naming
+        output_path = os.path.join('output/audio', f'mixed_song_{self.index}.wav')
         sf.write(output_path, mixed_data, sample_rate)
         
         self.output.filepath = output_path
@@ -47,31 +81,11 @@ class OutputController:
         )
         
         return output_path
-
-    def calc(self):
-        if not self._validate_inputs():
-            return
-
-        # Get mixing ratios
-        volume1 = self.output.signal1_slider.signal_ratio_value / 100
-        volume2 = self.output.signal2_slider.signal_ratio_value / 100
-
-        # Mix audio files and save
-        mixed_path = self._mix_audio_files(volume1, volume2)
-        if not mixed_path:
-            return
-
-        # Extract features and find similarities
-        similarities = self._find_similarities(
-            self.feature_extractor.extract_features(self.output.main_window.input_player1.filepath),
-            self.feature_extractor.extract_features(self.output.main_window.input_player2.filepath),
-            volume1,
-            volume2
-        )
-
-        # Update UI with results
-        self._update_ui_with_results(similarities)
-
+    def _save_features(self, features, filename):
+        """Save audio features to txt file"""
+        feature_path = os.path.join('output/features', f"{filename}_features.txt")
+        with open(feature_path, 'w') as f:
+            json.dump(features, f, indent=2)
 
     def _validate_inputs(self):
         return (self.output.main_window.input_player1.filepath and 
