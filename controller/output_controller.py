@@ -21,14 +21,46 @@ class OutputController:
         os.makedirs('output/audio', exist_ok=True)
         os.makedirs('output/features', exist_ok=True)
 
-    def calc(self):
-        if not self._validate_inputs():
+    def calc(self, volume1, volume2):
+        # Check which input files are available
+        has_input1 = bool(self.output.main_window.input_player1.filepath)
+        has_input2 = bool(self.output.main_window.input_player2.filepath)
+
+        if not has_input1 and not has_input2:
+            print("No input files selected")
             return
 
-        # Get mixing ratios
-        volume1 = self.output.signal1_slider.signal_ratio_value / 100
-        volume2 = self.output.signal2_slider.signal_ratio_value / 100
+        if has_input1 and has_input2:
+            self._handle_mixed_songs(volume1, volume2)
+        else:
+            self._handle_single_song(
+                self.output.main_window.input_player1.filepath or 
+                self.output.main_window.input_player2.filepath
+            )
 
+    def _handle_single_song(self, input_path):
+        # Extract features from the input file
+        input_features = self.feature_extractor.extract_features(input_path)
+        
+        # Find similarities without mixing
+        similarities = self._find_similarities_single(input_features)
+        
+        # Update UI with results
+        self._update_ui_with_results(similarities)
+        
+        # Update the central image with the top match
+        if similarities and len(similarities) > 0:
+            top_song = similarities[0]
+            group_num = top_song['name'].split('_')[0]
+            top_image_path = f"data/images/{group_num}.jpg"
+            pixmap = QPixmap(top_image_path)
+            if not pixmap.isNull():
+                self.output.main_window.matched_song_cover.setPixmap(
+                    pixmap.scaled(400, 400, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+                )
+                self.output.main_window.matched_song_cover.setAlignment(Qt.AlignCenter)
+
+    def _handle_mixed_songs(self, volume1, volume2):
         # Extract features from both input files
         input1_features = self.feature_extractor.extract_features(
             self.output.main_window.input_player1.filepath
@@ -46,7 +78,7 @@ class OutputController:
         mixed_features = self.feature_extractor.extract_features(mixed_path)
         self._save_features(mixed_features, f'mixed_song_{self.index}')
 
-        # Find similarities
+        # Find similarities for mixed audio
         similarities = self._find_similarities(
             input1_features, 
             input2_features,
@@ -56,6 +88,32 @@ class OutputController:
 
         # Update UI with results
         self._update_ui_with_results(similarities)
+
+    def _find_similarities_single(self, input_features):
+        similarities = []
+        features_dir = "data/Songs_Features"
+        
+        for file in os.listdir(features_dir):
+            if not file.endswith("_fingerprint.txt"):
+                continue
+                
+            with open(os.path.join(features_dir, file), 'r') as f:
+                ref_data = json.load(f)
+                ref_features = ref_data['features']
+                
+                # Calculate similarity with the single input file
+                similarity = self.similarity_calculator.calculate_similarity(
+                    input_features, 
+                    ref_features
+                )
+
+                song_name = os.path.splitext(file)[0].replace('_fingerprint', '')
+                similarities.append({
+                    'name': song_name,
+                    'similarity': similarity
+                })
+        
+        return sorted(similarities, key=lambda x: x['similarity'], reverse=True)
 
     def _mix_and_save_audio(self, volume1, volume2):
         mixed_data, sample_rate = self.audio_mixer.mix_audio_files(
@@ -81,18 +139,12 @@ class OutputController:
         )
         
         return output_path
+
     def _save_features(self, features, filename):
         """Save audio features to txt file"""
         feature_path = os.path.join('output/features', f"{filename}_features.txt")
         with open(feature_path, 'w') as f:
             json.dump(features, f, indent=2)
-
-    def _validate_inputs(self):
-        return (self.output.main_window.input_player1.filepath and 
-                self.output.main_window.input_player2.filepath)
-
-    
-
 
     def _find_similarities(self, input1_features, input2_features, volume1, volume2):
         similarities = []
