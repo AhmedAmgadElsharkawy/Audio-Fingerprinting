@@ -20,7 +20,7 @@ Fingerprint-based music and vocals identification app that generates spectrogram
 1. **Clone the repository:**
 
    ``````
-   git clone https://github.com/AhmedAmgadElsharkawy/Fingerprint.git
+   git clone https://github.com/AhmedAmgadElsharkawy/Audio-Fingerprinting.git
    ``````
 
 2. **Install The Dependincies:**
